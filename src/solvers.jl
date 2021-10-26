@@ -379,8 +379,6 @@ Example Usage
     Iₙ = Matrix{Float64}(I, n, n) 
     Iₚ = Matrix{Float64}(I, p, p)
 	Q,R = qr(L')
-	Q*R
-	Q[:,1:p]*(R^-1)'
 	K0 = Q[:,p+1:end]
 	H,T = qr(A*K0)
 	H0 = H[:,1:n-p]
