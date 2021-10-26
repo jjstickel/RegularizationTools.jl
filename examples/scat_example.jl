@@ -40,8 +40,11 @@ f = get_domainfunction(ref)
 A = designmatrix(s, q, f) 
 b = forwardmodel(s, N, q, f) 
 
+r = [0.6640146131466915, 0.2160120227783171, 0.6217884023541196,
+	 0.6704021370120161, 0.19721082328252892, 0.3680701880781616]
+
 y = A*N 
-b = A*N .+ 0.01*y .* randn(6)
+b = A*N .+ 0.001*y .* r
 
 xλ = @> setupRegularizationProblem(A,2) solve(b, alg=:gcv_svd) getfield(:x)
 plot(x = Dp, y = xλ, Geom.line, layer(x = Dp, y = N))
