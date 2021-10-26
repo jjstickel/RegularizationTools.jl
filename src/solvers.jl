@@ -43,7 +43,7 @@ Example Usage (Lazy Syntax)
 b̄ = @>> b to_standard_form(Ψ)
 ```
 """
-to_standard_form(Ψ::RegularizationProblem, b::AbstractVector) = b
+to_standard_form(Ψ::RegularizationProblem, b::AbstractVector) = b - Ψ.A*Ψ.K₀T⁻¹H₀ᵀ*b
 
 @doc raw"""
     to_standard_form(Ψ::RegularizationProblem, b::AbstractVector, x₀::AbstractVector)
@@ -56,18 +56,16 @@ b̄ = to_standard_form(Ψ, b, x₀)
 ```
 """
 to_standard_form(Ψ::RegularizationProblem, b::AbstractVector, x₀::AbstractVector) =
-    b, Ψ.L * x₀
+    b - Ψ.A*Ψ.K₀T⁻¹H₀ᵀ*b, Ψ.L * x₀
 
 @doc raw"""
     to_general_form(Ψ::RegularizationProblem, b::AbstractVector, x̄::AbstractVector)
 
 Converts solution ``\bar {\rm x}`` computed in standard form back to general form 
-``{\rm x}`` using (Hansen, 1998). Solution is truncated to regularized space, given
-by the matrix L. If L is p × n and p < n, then only the solution 1:p is valid. The remaining 
-parameters can be estiamted from the least-squares solution if needed.
+``{\rm x}`` using (Hansen, 1998).
 
 ```math
-{\rm x}={\rm {\bf L^{+}_A}\bar{x}}
+{\rm x}={\rm {\bf L^{+}_A}\bar{x} + x\_0}
 ```
 
 where the matrices and vectors are defined in [RegularizationProblem](@ref)
@@ -83,13 +81,7 @@ x = @>> x̄ to_general_form(Ψ, b)
 ```
 """
 function to_general_form(Ψ::RegularizationProblem, b::AbstractVector, x̄::AbstractVector) 
-    n, p = size(Ψ.L⁺ₐ)
-    x = Ψ.L⁺ₐ * x̄ 
-    if p < n 
-        return x[1:p]
-    else 
-        return x
-    end 
+	x = Ψ.L⁺ * x̄  + Ψ.K₀T⁻¹H₀ᵀ*(b - Ψ.A*Ψ.L⁺*x̄ ) 
 end
 
 @doc raw"""
@@ -386,13 +378,15 @@ Example Usage
     p, n = size(L)
     Iₙ = Matrix{Float64}(I, n, n) 
     Iₚ = Matrix{Float64}(I, p, p)
-    F = svd(A,L)
-    U = F.U
-    V = F.V
-    Σ = Matrix(F.D1)
-    M = Matrix(F.D2)
-    X = inv((F.R0*F.Q'))
-    L⁺ₐ = X*pinv(M)*V'
+	Q,R = qr(L')
+	Q*R
+	Q[:,1:p]*(R^-1)'
+	K0 = Q[:,p+1:end]
+	H,T = qr(A*K0)
+	H0 = H[:,1:n-p]
+	K₀T⁻¹H₀ᵀ = K0*T^-1*H0'
+	L⁺ = pinv(L)
+	L⁺ₐ = (Iₙ - K₀T⁻¹H₀ᵀ*A)*L⁺
     Ā = A*L⁺ₐ
 
     RegularizationProblem(
@@ -405,5 +399,7 @@ Example Usage
         Iₙ,
         Iₚ,
         L⁺ₐ,
+		L⁺,
+		K₀T⁻¹H₀ᵀ	
     )
 end

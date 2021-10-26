@@ -61,7 +61,9 @@ struct RegularizationProblem
     F̄::SVD                 # Cached SVD decomposition of Ā 
     Iₙ::Matrix{Float64}    # Cached identity matrix n×n
     Iₚ::Matrix{Float64}    # Cached identity matrix p×p
+    L⁺::Matrix{Float64}    # Cached pinverse of L
     L⁺ₐ::Matrix{Float64}   # Cached A-weighted generalized inverse of L
+    K₀T⁻¹H₀ᵀ::Matrix{Float64} # Cached value to compute 2.42 and 2.44 in Hansen ch 2.
 end
 
 @doc raw"""
