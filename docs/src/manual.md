@@ -73,7 +73,7 @@ You can specify which of these matrices to use in
 setupRegularizationProblem(A::AbstractMatrix, order::Int)
 ```
 where order = 0, 1, 2 corresponds to ``{\bf{\rm{L}}_0}``, ``{\bf{\rm{L}}_1}``, and 
-``{\bf{\rm{L}}_2}``
+``{\bf{\rm{L}}_2}``. Higher orders can be specified if desired.
 
 
 ### Example : [Phillips Problem](https://matrixdepotjl.readthedocs.io/en/latest/regu.html#term-phillips)
@@ -149,7 +149,7 @@ using RegularizationTools, MatrixDepot, Lazy, Random, LinearAlgebra
 
 r = mdopen("heat", 100, false)
 A, x = r.A, r.x
-Random.seed!(150) #hide
+Random.seed!(151) #hide
 
 y = A * x
 b = y + 0.05y .* randn(100)
@@ -175,7 +175,7 @@ using RegularizationTools, MatrixDepot, Lazy, Random, LinearAlgebra
 
 r = mdopen("heat", 100, false)
 A, x = r.A, r.x
-Random.seed!(150) #hide
+Random.seed!(151) #hide
 
 y = A * x
 b = y + 0.05y .* randn(100)
@@ -211,13 +211,13 @@ using RegularizationTools, MatrixDepot, Lazy, Random
 
 r = mdopen("shaw", 100, false)
 A, x = r.A, r.x
-Random.seed!(100) #hide
+Random.seed!(102) #hide
 
 y = A  * x
-b = y + 0.1y .* randn(100)
+b = y + 0.05y .* randn(100)
 
-xλ1 = @> setupRegularizationProblem(A,1) solve(b, alg=:L_curve, λ₁=0.1, λ₂=10.0) getfield(:x)
-xλ2 = @> setupRegularizationProblem(A,1) solve(b, alg=:gcv_svd) getfield(:x)
+xλ1 = @> setupRegularizationProblem(A,0) solve(b, alg=:L_curve, λ₁=0.01, λ₂=1.0) getfield(:x)
+xλ2 = @> setupRegularizationProblem(A,0) solve(b, alg=:gcv_svd, λ₁=0.01, λ₂=1.0) getfield(:x)
 include("theory/helpers.jl") # hide
 x₀ = 0.0*x # hide
 standard_plot1(y, b, x, xλ1, xλ2) # hide
@@ -237,10 +237,10 @@ using RegularizationTools, MatrixDepot, Lazy, Random, Underscores, Printf
 
 r = mdopen("shaw", 100, false)
 A, x = r.A, r.x
-Random.seed!(716) #hide
+Random.seed!(102) #hide
 
 y = A  * x
-b = y + 0.1y .* randn(100)
+b = y + 0.05y .* randn(100)
 
 Ψ = setupRegularizationProblem(A,1)
 λopt = @> solve(Ψ, b, alg=:gcv_svd) getfield(:λ)
@@ -265,10 +265,10 @@ using RegularizationTools, MatrixDepot, Lazy, Random, Underscores, Printf
 
 r = mdopen("shaw", 100, false)
 A, x = r.A, r.x
-Random.seed!(716) #hide
+Random.seed!(102) #hide
 
 y = A  * x
-b = y + 0.1y .* randn(100)
+b = y + 0.05y .* randn(100)
 
 Ψ = setupRegularizationProblem(A,1)
 λopt = @> solve(Ψ, b, alg=:L_curve, λ₂ = 10.0) getfield(:λ)
@@ -624,8 +624,7 @@ b = A*N
 
 The matrix A is 6x8. N are the number concentrations of at each size (length 8). A*N produces 6 measurements corresponding to three $\beta_s$ and three $\beta_a$ values. 
 
-#### Notes
-
+###
 1.  In this example 8 sizes are mapped to 6 observations. The setpoint $[s]$ and query $[q]$ domains are distinctly different in type.
 
 2.  The input and output tuples annotate data. The annotations are interpreted by the domain function to decide which value to compute (scattering or absorption).
@@ -680,7 +679,7 @@ And again b1 and b2 are close. Also A computed using the designmatrix function i
 Systems up to a 1000 equations are unproblematic. The setup for much larger system slows down due to the ``\approx O(n^2)`` (or worse) time complexity of the SVD and generalized SVD factorization of the design matrix. Larger systems require switching to SVD free algorithms, which are currently not supported by this package. 
 
 ```@example
-using RegularizationTools, TimerOutputs, MatrixDepot
+using RegularizationTools, TimerOutputs, MatrixDepot, Memoize
 
 to = TimerOutput()
 
@@ -690,12 +689,15 @@ function benchmark(n)
     y = A * x
     b = y + 0.05y .* randn(n)
     Ψ = setupRegularizationProblem(A, 2)
+	empty!(memoize_cache(setupRegularizationProblem))
     for i = 1:1
         @timeit to "Setup  (n = $n)" setupRegularizationProblem(A, 2)
         @timeit to "Invert (n = $n)" solve(Ψ, b)
     end
 end
 
-map(benchmark, [10, 100, 1000])
+benchmark(10)
+benchmark(100)
+benchmark(1000)
 show(to)
 ```

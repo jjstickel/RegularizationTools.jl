@@ -8,7 +8,7 @@ RegularizationTools.jl bundles a set routines to compute the [regularized  Tikho
 - Computes the Tikhonov inverse solution with optional boundary constraints.
 - Computes optimal regularization parameter using generalized cross validation or the L-curve.
 - Solves problems with up to a 1000 equations.
-- Supports zero, first, and second order regularization out of the box.
+- Supports higher order regularization schemes out of the box.
 - Supports specifying an *a-priori* estimate of the solution.
 - Supports user specified smoothing matrices.
 - User friendly interface.
@@ -39,14 +39,14 @@ using Random #hide
 # This is a test problem for regularization methods
 r = mdopen("shaw", 100, false)       # Load the "shaw" problem from MatrixDepot
 A, x  = r.A, r.x                     # A is size(100,100), x is length(100)
-Random.seed!(716)  # hide
+Random.seed!(250)  # hide
 
 y = A * x                            # y is the true response 
 b = y + 0.2y .* randn(100)           # response with superimposed noise
 x₀ = 0.4x                            # some a-priori estimate x₀
 
 # Solve 2nd order Tikhonov inversion (L = uppertridiag(−1, 2, −1)) with intial guess x₀
-xλ = invert(A, b, Lₖx₀(2, x₀))
+xλ = invert(A, b, Lₖx₀(0, x₀))
 include("theory/helpers.jl") # hide
 standard_plot(y, b, x, xλ, x₀) # hide
 ```

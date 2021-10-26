@@ -275,7 +275,7 @@ is considered to be in standard form. The general-form problem can be transforme
 V(\lambda)=\frac{n\left\lVert ({\bf {\rm {\bf {\bf I}-}{\bf A_{\lambda}}){\rm b}}}\right\rVert _{2}^{2}}{tr({\rm {\bf I}-{\rm {\bf A_{\lambda}})}^{2}}}
 ```
 
-where ``{\bf A_{\lambda}}={\rm {\rm {\bf A}}}\left({\bf AA}^{T}-\lambda^{2}{\rm {\bf I}}\right)^{-1}{\bf A}^{T}`` is the influence matrix, tr is the [matrix trace](https://en.wikipedia.org/wiki/Trace_(linear_algebra)), ``n`` is the size of ``\rm{b}``. Note that ``{\rm x_{\lambda}}=\left({\rm {\bf A}^{T}}{\rm {\bf A}}+\lambda^{2}{\rm {\bf I}}\right)^{-1}{\rm {\bf A}^{T}}{\rm b}``. Therefore ``{\rm {\rm {\rm {\bf A}}}x_{\lambda}={\rm {\bf A_{\lambda}}b}}`` and ``\left\lVert ({\bf {\rm {\bf {\bf I}-}{\bf A_{\lambda}}){\rm b}}}\right\rVert _{2}=\left\lVert {\bf {\rm {\bf A}{\rm x_{\lambda}}-{\rm b}}}\right\rVert _{2}``. The optimal ``\lambda_{opt}`` coincides with the global minimum of ``V(\lambda)``. 
+where ``{\bf A_{\lambda}}={\rm {\rm {\bf A}}}\left({\bf A}^{\rm T} {\bf A}+\lambda^{2}{\rm {\bf I}}\right)^{-1}{\bf A}^{\rm T}`` is the influence matrix, tr is the [matrix trace](https://en.wikipedia.org/wiki/Trace_(linear_algebra)), ``n`` is the size of ``\rm{b}``. Note that ``{\rm x_{\lambda}}=\left({\rm {\bf A}^{T}}{\rm {\bf A}}+\lambda^{2}{\rm {\bf I}}\right)^{-1}{\rm {\bf A}^{T}}{\rm b}``. Therefore ``{\rm {\rm {\rm {\bf A}}}x_{\lambda}={\rm {\bf A_{\lambda}}b}}`` and ``\left\lVert ({\bf {\rm {\bf {\bf I}-}{\bf A_{\lambda}}){\rm b}}}\right\rVert _{2}=\left\lVert {\bf {\rm {\bf A}{\rm x_{\lambda}}-{\rm b}}}\right\rVert _{2}``. The optimal ``\lambda_{opt}`` coincides with the global minimum of ``V(\lambda)``. 
 
 The following example evaluates ``V(\lambda)`` over a range of ``\lambda``. 
 ```@example
