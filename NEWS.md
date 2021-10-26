@@ -4,12 +4,13 @@
 ---
 
 ## v0.5.0
-- update documentation
-- update tests to be independent of random number generation
-- update Project and Manifest to be current. Added CSV and DataFrames as deps for unit tests
-- explicitly account for the unregularized component of x which is not affected by the regularization scheme (fix for issue #7 raised by Jonathan Stickel). Note that the bug/issue affected solutions for very larger regularization parameters, but had no/neglible effect on calculations near the optimal solution for regularization. 
-- update code for smoothing matrix generation (base on example in issue #7 contributed by Jonathan Stickel). The updated code also directly allows computation of arbitrary order of the smoothing matrix.
-- added smoothing example from issue #7 to examples folder
+- Significant performance gain in "setupRegularizationProblem" by switching from GSVD to QR factorization approach
+- Update documentation
+- Update tests to be independent of random number generation
+- Update Project and Manifest to be current. Added CSV and DataFrames as deps for unit tests
+- Explicitly account for the unregularized component of x which is not affected by the regularization scheme (fix for issue #7 raised by Jonathan Stickel). Note that the bug/issue affected solutions for very larger regularization parameters, but had no/neglible effect on calculations near the optimal solution for regularization. 
+- Update code for smoothing matrix generation (base on example in issue #7 contributed by Jonathan Stickel). The updated code also directly allows computation of arbitrary order of the smoothing matrix.
+- Added smoothing example from issue #7 to examples folder
 
 ## v0.4.1
 - Minor release associated with julia 1.6.0 
