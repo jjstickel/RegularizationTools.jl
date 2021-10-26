@@ -7,6 +7,8 @@ using Test
 using Underscores
 using LinearAlgebra
 using Lazy
+using CSV
+using DataFrames
 
 @testset "RegularizationTools.jl" begin
     include("standard_form.jl")  # Test standard form transformation

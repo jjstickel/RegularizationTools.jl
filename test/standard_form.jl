@@ -1,10 +1,9 @@
 # Test standard form transformation
 r = mdopen("shaw", 100, false)
 A, x = r.A, r.x
-Random.seed!(100) 
-
+rn = CSV.read("random_numbers.csv", DataFrame)
 y = A * x
-b = y + 0.1y .* randn(100)
+b = y + 0.1y .* rn.x
 x₀ = 0.6x
 
 λ = 2.0
@@ -46,9 +45,8 @@ sol2 = inv(A'A + λ^2.0 * L'L) * (A' * b + λ^2.0 * L'L*x₀)
 L = Γ(A, 0)
 r = mdopen("shaw", 100, false)
 A, x = r.A, r.x
-Random.seed!(100) 
 
-L = rand(100,100)
+L = CSV.read("random_matrix.csv", DataFrame) |> Matrix
 Ψ = setupRegularizationProblem(A, L)
 b̄ = to_standard_form(Ψ, b)
 sol1 = @>> solve(Ψ, b̄, λ) to_general_form(Ψ, b) 
