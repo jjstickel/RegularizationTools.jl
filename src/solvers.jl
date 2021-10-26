@@ -1,25 +1,23 @@
 @doc raw"""
     Γ(A::AbstractMatrix, order::Int)
 
-Return the smoothing matrix L for zero, first and second order Tikhonov regularization 
-based on the size of design matrix A. Order can be 0, 1 or 2.
+Return the smoothing matrix L for Tikhonov regularization based on the size of design matrix A. 
+Order can be 0, 1, ..., n. Code to generate matrix is based on Jonathan Stickel's suggestion
+posted in Issue #7.
 
 ```julia
 L = Γ(A, 1)
 ```
 """
-function Γ(A::AbstractMatrix, order::Int)
-    n = size(A'A, 1)
+@memoize function Γ(A::AbstractMatrix, order::Int)
+	n, m = size(A)
 
-    @match order begin
-        0 => zot(n)
-        1 => fot(n)
-        2 => sot(n)
-        _ => throw("Order not supported, select 0, 1, or 2")
+    if order == 0
+        return Array{Float64}(LinearAlgebra.I, (n, m))
     end
-end
 
-zot(n) = Matrix{Float64}(I, n, n)
+    return diff(Γ(A, order-1), dims=1)
+end
 
 function zot(A::AbstractMatrix, λ::AbstractFloat)
     a = deepcopy(A)
@@ -28,25 +26,6 @@ function zot(A::AbstractMatrix, λ::AbstractFloat)
         @inbounds a[i, i] += λ
     end
     return a
-end
-
-function fot(n)
-    L = zeros(n + 1, n)
-    for i = 1:n
-        @inbounds L[i, i] = -1
-        @inbounds L[i+1, i] = 1
-    end
-    return L
-end
-
-function sot(n)
-    L = zeros(n + 2, n)
-    for i = 1:n
-        @inbounds L[i, i] = 1
-        @inbounds L[i+1, i] = -2
-        @inbounds L[i+2, i] = 1
-    end
-    return L
 end
 
 @doc raw"""
