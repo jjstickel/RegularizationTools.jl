@@ -1,7 +1,7 @@
 name = "RegularizationTools"
 uuid = "29dad682-9a27-4bc3-9c72-016788665182"
 authors = ["Markus Petters"]
-version = "0.5.0"
+version = "0.5.1"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
@@ -22,12 +22,12 @@ CSV = "0.9.0 - 0.9.9, 0.9"
 Calculus = "0.5.0 - 0.5.1"
 DataFrames = "1 - 1.2"
 Lazy = "0.13 - 0.15"
-LeastSquaresOptim = "0.7.0 - 0.7.6, 0.8"
-MLStyle = "0.4.6"
+LeastSquaresOptim = "0.7, 0.8"
+MLStyle = "0.4"
 MatrixDepot = "0.8, 1.0"
 Memoize = "0.4"
 Optim = "0.18.0 - 0.22.0, 1.2"
-Underscores = "2.0.0, 3"
+Underscores = "2, 3"
 julia = "1.5, 1.6"
 
 [extras]
