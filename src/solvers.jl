@@ -1,22 +1,21 @@
 @doc raw"""
-    Γ(A::AbstractMatrix, order::Int)
+    Γ(m::Int, order::Int)
 
-Return the smoothing matrix L for Tikhonov regularization based on the size of design matrix A. 
-Order can be 0, 1, ..., n. Code to generate matrix is based on Jonathan Stickel's suggestion
-posted in Issue #7.
+Return the smoothing matrix L for Tikhonov regularization of a system of size `m`.  Order
+can be 0, 1, ..., n. Code to generate matrix is based on the suggestion posted in Issue #7,
+which was inspired by Eilers, P. H. C. (2003). Analytical Chemistry, 75(14),
+3631–3636. (Supporting Information).
 
 ```julia
-L = Γ(A, 1)
+L = Γ(m, 1)
 ```
 """
-@memoize function Γ(A::AbstractMatrix, order::Int)
-	n, m = size(A)
-
+@memoize function Γ(m::Int, order::Int)
     if order == 0
-        return Array{Float64}(LinearAlgebra.I, (n, m))
+        return Array{Float64}(LinearAlgebra.I, (m, m))
     end
 
-    return diff(Γ(A, order-1), dims=1)
+    return diff(Γ(m, order-1), dims=1)
 end
 
 function zot(A::AbstractMatrix, λ::AbstractFloat)
@@ -361,7 +360,7 @@ Example Usage
 ```
 """
 setupRegularizationProblem(A::AbstractMatrix, order::Int) = 
-    setupRegularizationProblem(A, Γ(A, order))
+    setupRegularizationProblem(A, Γ(size(A,2), order))
 
 @doc raw"""
     setupRegularizationProblem(A::AbstractMatrix, L::AbstractMatrix)
