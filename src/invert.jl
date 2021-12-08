@@ -55,8 +55,8 @@ xλ = invert(A, b, Lₖx₀DₓB(k, x₀, ε, lb, ub); alg = :gcv_svd)
 ```
 """    
 function invert(A::Matrix, b::Vector, method::InverseMethod; kwargs...)
-    n = length(b)
-
+    n,m = size(A)
+    
     res = @match method begin
         Lₖ(k) => @as p begin
             setupRegularizationProblem(A, k)
@@ -85,7 +85,7 @@ function invert(A::Matrix, b::Vector, method::InverseMethod; kwargs...)
                 getfield(p, :x)
             end 
             x̂[x̂ .< ε] .= ε 
-            ψ = @>> Γ(A, k)*Diagonal(x̂)^(-1) setupRegularizationProblem(A)
+            ψ = @>> Γ(m, k)*Diagonal(x̂)^(-1) setupRegularizationProblem(A)
             @as p begin
                 solve(ψ, b; kwargs...) 
                 getfield(p, :x)
@@ -98,7 +98,7 @@ function invert(A::Matrix, b::Vector, method::InverseMethod; kwargs...)
                 getfield(p, :x)
             end 
             x̂[x̂ .< ε] .= ε
-            ψ = @>> Γ(A, k)*Diagonal(x̂)^(-1) setupRegularizationProblem(A)
+            ψ = @>> Γ(m, k)*Diagonal(x̂)^(-1) setupRegularizationProblem(A)
             @as p begin
                 solve(ψ, b, x̂, lb, ub; kwargs...) 
                 getfield(p, :x)
@@ -111,7 +111,7 @@ function invert(A::Matrix, b::Vector, method::InverseMethod; kwargs...)
                 getfield(p, :x)
             end 
             x̂[x̂ .< ε] .= ε
-            ψ = @>> Γ(A, k)*Diagonal(x̂)^(-1) setupRegularizationProblem(A)
+            ψ = @>> Γ(m, k)*Diagonal(x̂)^(-1) setupRegularizationProblem(A)
             @as p begin
                 solve(ψ, b; kwargs...) 
                 getfield(p, :x)
@@ -124,7 +124,7 @@ function invert(A::Matrix, b::Vector, method::InverseMethod; kwargs...)
                 getfield(p, :x)
             end 
             x̂[x̂ .< ε] .= ε
-            ψ = @>> Γ(A, k)*Diagonal(x̂)^(-1) setupRegularizationProblem(A)
+            ψ = @>> Γ(m, k)*Diagonal(x̂)^(-1) setupRegularizationProblem(A)
             @as p begin
                 solve(ψ, b, x̂, lb, ub; kwargs...) 
                 getfield(p, :x)
