@@ -1,7 +1,7 @@
 name = "RegularizationTools"
 uuid = "29dad682-9a27-4bc3-9c72-016788665182"
 authors = ["Markus Petters"]
-version = "0.5.1"
+version = "0.5.2"
 
 [deps]
 CSV = "336ed68f-0bac-5ca0-87d4-7b16caf5d00b"
