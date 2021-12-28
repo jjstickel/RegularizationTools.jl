@@ -2,6 +2,9 @@
 
 #### Notes on release changes and ongoing development
 ---
+## v0.5.2
+- change derivative matrix function call to Γ(m::Int, order::Int)
+- remove Matrix Depot as dependency
 
 ## v0.5.0
 - Significant performance gain in "setupRegularizationProblem" by switching from GSVD to QR factorization approach
