@@ -46,5 +46,5 @@ r = [0.6640146131466915, 0.2160120227783171, 0.6217884023541196,
 y = A*N 
 b = A*N .+ 0.001*y .* r
 
-xλ = @> setupRegularizationProblem(A,2) solve(b, alg=:gcv_svd) getfield(:x)
+xλ = @> setupRegularizationProblem(A,0) solve(b, alg=:gcv_svd) getfield(:x)
 plot(x = Dp, y = xλ, Geom.line, layer(x = Dp, y = N))
