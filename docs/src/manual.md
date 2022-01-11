@@ -81,22 +81,18 @@ where order = 0, 1, 2 corresponds to ``{\bf{\rm{L}}_0}``, ``{\bf{\rm{L}}_1}``, a
 Example with 100 point discretization and zero initial guess.
 
 ```@example
-using RegularizationTools, MatrixDepot, Lazy
-using Random # hide
+using RegularizationTools, MatrixDepot, Lazy, DelimitedFiles
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] 
 
 r = mdopen("phillips", 100, false)
 A, x = r.A, r.x
-Random.seed!(850) # hide
 
 y = A * x
-b = y + 0.1y .* randn(100)
+b = y + 0.1y .* random(100)
 xλ = @> setupRegularizationProblem(A, 2) solve(b) getfield(:x)
 include("theory/helpers.jl") # hide
 standard_plot(y, b, x, xλ, 0.0x) # hide
 ```
-
-!!! note
-    The random perturbation ```b = y + 0.1y .* randn(100)```  in each of the examples uses a fixed random seed to ensure reproducibility. The random seed and plot commands are hidden for clarity. 
 
 !!! note
     The example system is a test problem for regularization methods is taken from [MatrixDepot.jl](https://matrixdepotjl.readthedocs.io/en/latest/regu.html#term-shaw) and is the same system used in Hansen (2000).
@@ -108,14 +104,14 @@ standard_plot(y, b, x, xλ, 0.0x) # hide
 Zeroth order example with 500 point discretization and moderate initial guess.
 
 ```@example
-using RegularizationTools, MatrixDepot, Lazy, Random
+using RegularizationTools, MatrixDepot, Lazy, DelimitedFiles
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] 
 
 r = mdopen("shaw", 500, false)
 A, x = r.A, r.x
-Random.seed!(850) #hide 
 
 y = A * x
-b = y + 0.1y .* randn(500)
+b = y + 0.1y .* random(500)
 x₀ = 0.6x
 
 xλ = @> setupRegularizationProblem(A, 0) solve(b, x₀) getfield(:x)
@@ -142,26 +138,26 @@ where ``{\rm {\bf L}}_k`` is one of the finite difference approximations of a de
 
 ### Example 3: [Heat Problem ](https://matrixdepotjl.readthedocs.io/en/latest/regu.html#term-heat)  
 
-This examples illustrates how to implement the Huckle and Sedlacek (2012) matrix. Note that ```Γ(A, 2)``` returns the [Tikhonov Matrix](@ref) of order 2. 
+This examples illustrates how to implement the Huckle and Sedlacek (2012) matrix. Note that ```Γ(n, 2)``` returns the [Tikhonov Matrix](@ref) of order 2. 
 
 ```@example
-using RegularizationTools, MatrixDepot, Lazy, Random, LinearAlgebra
+using RegularizationTools, MatrixDepot, Lazy, LinearAlgebra, DelimitedFiles
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] 
 
 r = mdopen("heat", 100, false)
 A, x = r.A, r.x
-Random.seed!(151) #hide
 
 y = A * x
-b = y + 0.05y .* randn(100)
+b = y + 0.04y .* random(100)
 x₀ = zeros(length(b))
 
-L₂ = Γ(A,2)                  
+L₂ = Γ(length(b), 2)                  
 xλ1 = @> setupRegularizationProblem(A, L₂) solve(b) getfield(:x)
 x̂ = deepcopy(abs.(xλ1))
 x̂[abs.(x̂) .< 0.1] .= 0.1
 L = L₂*Diagonal(x̂)^(-1)
 xλ2 = @> setupRegularizationProblem(A, L) solve(b) getfield(:x)
-include("theory/helpers.jl") # hide
+include("theory/helpers.jl")      # hide
 standard_plot1(y, b, x, xλ1, xλ2) # hide
 ```
 
@@ -171,17 +167,17 @@ The solution xλ2 is improved over the regular L₂ solution.
 To add boundary constraints (e.g. enforce that all solutions are positive), the following procedure is implemented. Compute the algebraic solution without constraints, truncate the solution at the upper and lower bounds, and use the result as initial condition for solving the minimization problem with a least squares numerical solver [LeastSquaresOptim](https://github.com/matthieugomez/LeastSquaresOptim.jl). The regularization parameter λ obtained from the algebraic solution is used for a single pass optimization. See [solve](@ref) for a complete list of methods.
 
 ```@example
-using RegularizationTools, MatrixDepot, Lazy, Random, LinearAlgebra
+using RegularizationTools, MatrixDepot, Lazy, LinearAlgebra, DelimitedFiles
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] 
 
 r = mdopen("heat", 100, false)
 A, x = r.A, r.x
-Random.seed!(151) #hide
 
 y = A * x
-b = y + 0.05y .* randn(100)
+b = y + 0.04y .* random(100)
 x₀ = zeros(length(b))
 
-L₂ = Γ(A,2)                  
+L₂ = Γ(length(b),2)                  
 xλ1 = @> setupRegularizationProblem(A, L₂) solve(b) getfield(:x)
 x̂ = deepcopy(abs.(xλ1))
 x̂[abs.(x̂) .< 0.1] .= 0.1
@@ -189,7 +185,7 @@ x̂[abs.(x̂) .< 0.1] .= 0.1
 lower = zeros(100)
 upper = ones(100)
 xλ2 = @> solve(ψ, b, lower, upper) getfield(:x)
-include("theory/helpers.jl") # hide
+include("theory/helpers.jl")      # hide
 standard_plot1(y, b, x, xλ1, xλ2) # hide
 ```
 
@@ -207,19 +203,19 @@ The solve function searches for the optimum regularization parameter ``\lambda``
 ### Example 
 
 ```@example
-using RegularizationTools, MatrixDepot, Lazy, Random
+using RegularizationTools, MatrixDepot, Lazy, DelimitedFiles
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] 
 
-r = mdopen("shaw", 100, false)
+r = mdopen("phillips", 100, false)
 A, x = r.A, r.x
-Random.seed!(102) #hide
 
-y = A  * x
-b = y + 0.05y .* randn(100)
+y = A * x
+b = y + 0.1 .* random(100)
 
-xλ1 = @> setupRegularizationProblem(A,0) solve(b, alg=:L_curve, λ₁=0.01, λ₂=1.0) getfield(:x)
-xλ2 = @> setupRegularizationProblem(A,0) solve(b, alg=:gcv_svd, λ₁=0.01, λ₂=1.0) getfield(:x)
-include("theory/helpers.jl") # hide
-x₀ = 0.0*x # hide
+xλ1 = @> setupRegularizationProblem(A,1) solve(b, alg=:L_curve, λ₁=0.01, λ₂=10.0) getfield(:x)
+xλ2 = @> setupRegularizationProblem(A,1) solve(b, alg=:gcv_svd, λ₁=0.01, λ₂=10.0) getfield(:x)
+include("theory/helpers.jl")      # hide
+x₀ = 0.0*x                        # hide
 standard_plot1(y, b, x, xλ1, xλ2) # hide
 ```
 
@@ -233,14 +229,14 @@ Note that the output from the L-curve and GCV algorithm are nearly identical.
 The solution is obtained by first transforming the problem to standard form (see [Transformation to Standard Form](@ref)). The following example can be used to extract the [GCV](@ref) function.
 
 ```@example
-using RegularizationTools, MatrixDepot, Lazy, Random, Underscores, Printf
+using RegularizationTools, MatrixDepot, Lazy, Underscores, Printf, DelimitedFiles
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] 
 
 r = mdopen("shaw", 100, false)
 A, x = r.A, r.x
-Random.seed!(102) #hide
 
 y = A  * x
-b = y + 0.05y .* randn(100)
+b = y + 0.05y .* random(100)
 
 Ψ = setupRegularizationProblem(A,1)
 λopt = @> solve(Ψ, b, alg=:gcv_svd) getfield(:λ)
@@ -248,7 +244,7 @@ b̄ = to_standard_form(Ψ, b)
 λs = exp10.(range(log10(1e-1), stop = log10(10), length = 100))
 Vλ = @_ map(gcv_svd(Ψ, b̄, _), λs) 
 include("theory/helpers.jl") # hide
-graph3(λs, Vλ) # hide
+graph3(λs, Vλ)               # hide
 ```
 
 The calculated λopt from 
@@ -257,18 +253,18 @@ The calculated λopt from
 λopt = @> solve(Ψ, b, alg=:gcv_svd) getfield(:λ)
 ```
 
-is 1.1 and corresponds to the minimum of the GCV curve. 
+is 0.25 and corresponds to the minimum of the GCV curve. 
 
 Alternatively, the L-curve is retrieved through the [L-curve Functions](@ref)
 ```@example
-using RegularizationTools, MatrixDepot, Lazy, Random, Underscores, Printf
+using RegularizationTools, MatrixDepot, Lazy, Underscores, Printf, DelimitedFiles
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] 
 
 r = mdopen("shaw", 100, false)
 A, x = r.A, r.x
-Random.seed!(102) #hide
 
 y = A  * x
-b = y + 0.05y .* randn(100)
+b = y + 0.05y .* random(100)
 
 Ψ = setupRegularizationProblem(A,1)
 λopt = @> solve(Ψ, b, alg=:L_curve, λ₂ = 10.0) getfield(:λ)
@@ -286,7 +282,7 @@ The calculated λopt from
 λopt = @> solve(Ψ, b, alg=:L_curve, λ₂ = 10.0) getfield(:λ)
 ```
 
-is 0.9 and corresponds to the corner of the L-curve.
+is 0.14 and corresponds to the corner of the L-curve.
 
 
 ## The Invert Function

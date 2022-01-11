@@ -60,15 +60,17 @@ using DataFrames          # hide
 using LinearAlgebra       # hide
 using Printf              # hide
 using Underscores         # hide
-using Colors #hide
+using Colors              # hide
+using DelimitedFiles      # hide
+using Lazy                # hide
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] # hide 
 
-include("helpers.jl")     # hide
+include("helpers.jl")           # hide
 r = mdopen("shaw", 100, false)  # hide
 A, x, y = r.A, r.x, r.b         # hide
-Random.seed!(302)               # hide
 
 y = A * x
-b = y + 0.1y .* randn(100)
+b = y + 0.1y .* random(100)
 x = pinv(A) * y
 x̂ = pinv(A) * b
 # hide
@@ -125,22 +127,24 @@ Here is a simple regularized inversion for the same system using ``{\rm {\bf L}}
 The regularized inverse can be trivially computed assuming a value for ``\lambda = 0.11``.
 ```@example
 using RegularizationTools # hide
-using MatrixDepot # hide
-using Gadfly # hide
-using Random # hide
-using DataFrames # hide
-using Colors # hide
-using LinearAlgebra # hide
-using Underscores # hide
-using Printf #  hide
+using MatrixDepot    # hide
+using Gadfly         # hide
+using Random         # hide
+using DataFrames     # hide
+using Colors         # hide
+using LinearAlgebra  # hide
+using Underscores    # hide
+using Printf         # hide
+using DelimitedFiles # hide
+using Lazy           # hide
 
 include("helpers.jl") # hide
 r = mdopen("shaw", 100, false) # hide
 A, x, y = r.A, r.x, r.b # hide
-Random.seed!(716) # hide
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] #hide 
 
 y = A * x
-b = y + 0.1y .* randn(100)
+b = y + 0.1y .* random(100)
 Iₙ = Matrix{Float64}(I, 100, 100)
 λ = 0.11
 xλ = inv(A'A + λ^2.0 * Iₙ) * A' * b
@@ -167,25 +171,27 @@ The choice of the optimal regularization parameter is not obvious. If we pick ``
 
 ```@example
 using RegularizationTools # hide
-using MatrixDepot # hide
-using Gadfly # hide
-using Random # hide
-using DataFrames # hide
-using Colors # hide
-using LinearAlgebra # hide
-using Underscores #hide
-using Printf #  hide
+using MatrixDepot         # hide
+using Gadfly              # hide
+using Random              # hide
+using DataFrames          # hide
+using Colors              # hide
+using LinearAlgebra       # hide
+using Underscores         # hide
+using Printf              # hide
+using DelimitedFiles      # hide
+using Lazy                # hide
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] # hide 
 
 include("helpers.jl") # hide
 r = mdopen("shaw", 100, false) # hide
 A, x, y = r.A, r.x, r.b # hide
-Random.seed!(716) # hide
 
 y = A * x
-b = y + 0.1y .* randn(100)
+b = y + 0.1y .* random(100)
 Iₙ = Matrix{Float64}(I, 100, 100)
 f(λ) = inv(A'A + λ^2.0 * Iₙ) * A' * b
-xλ1 = f(0.001)
+xλ1 = f(0.01)
 xλ2 = f(0.1) 
 xλ3 = f(10.0)
 
@@ -205,7 +211,7 @@ p2 = graph(df; colors = ["black", "steelblue3", "darkred", "darkgoldenrod"]) # h
 set_default_plot_size(15cm, 6cm) # hide
 hstack(p1, p2) # hide
 ```
-``\lambda = 0.1`` provides an acceptable solution. ``\lambda = 0.001`` is noisy (under-regularized) and ``\lambda = 10.0`` is incorrect (over-regularized). There are several objective methods to find the optimal regularization parameter. The general procedure to identify the optimal ``\lambda`` is to compute ``{\rm x_{\lambda}}`` for
+``\lambda = 0.1`` provides an acceptable solution. ``\lambda = 0.01`` is noisy (under-regularized) and ``\lambda = 10.0`` is incorrect (over-regularized). There are several objective methods to find the optimal regularization parameter. The general procedure to identify the optimal ``\lambda`` is to compute ``{\rm x_{\lambda}}`` for
 a range of regularization parameters over the interval [``\lambda_1``, ``\lambda_2``] and then apply some evaluation criterion that objectively evaluates the quality of the solution. This package implements two of these, the L-curve method and generalized cross validation.
 
 ## L-Curve Method
@@ -213,23 +219,25 @@ The L-curve method evaluates the by balancing the size of the residual
 norm ``L_{1}=\left\lVert {\bf {\rm {\bf A}{\rm x_{\lambda}}-{\rm b}}}\right\rVert _{2}`` and the size of the solution norm ``L_{2}=\left\lVert {\rm {\bf L}({\rm x_{\lambda}}-{\rm x_{0}})}\right\rVert _{2}`` for ``{\rm x_{\lambda}}\in[\lambda_{1},\lambda_{2}]``. The L-curve
 consists of a plot of ``\log L_{1}`` vs. ``\log L_{1}``. The following example illustrates the L-curve without specifying an *a priori* input.
 ```@example
-using MatrixDepot # hide
-using Gadfly  # hide
-using Random # hide
-using DataFrames # hide
-using Colors # hide
+using MatrixDepot   # hide
+using Gadfly        # hide
+using Random        # hide
+using DataFrames    # hide
+using Colors        # hide
 using LinearAlgebra # hide
-using Underscores # hide
-using NumericIO # hide
-using Printf # hide
+using Underscores   # hide
+using NumericIO     # hide
+using Printf        # hide
+using DelimitedFiles # hide
+using Lazy           # hide
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] # hide 
 
 include("helpers.jl") # hide
 r = mdopen("shaw", 100, false) # hide
 A, x, y = r.A, r.x, r.b # hide
-Random.seed!(716) # hide
 
 y = A * x
-b = y + 0.1y .* randn(100)
+b = y + 0.1y .* random(100)
 Iₙ = Matrix{Float64}(I, 100, 100)
 f(λ) = inv(A'A + λ^2.0 * Iₙ) * A' * b
 L1(λ) = norm(A * f(λ) - b)
@@ -247,16 +255,19 @@ The optimal ``\lambda_{opt}`` is the corner of the L-curve. In this example this
 The solve function in RegularizationTools can be used to find λopt through the L-curve algorithm, searching over the predefined interval [``\lambda_1``, ``\lambda_2``].
 
 ```@example
-using MatrixDepot # hide
-using Lazy   # hide
-using Random # hide
+using MatrixDepot    # hide
+using Lazy           # hide
+using Random         # hide
+using DelimitedFiles # hide
+using Lazy           # hide
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] # hide 
 using RegularizationTools
 
-r = mdopen("shaw", 100, false) #hide
-A, x, y = r.A, r.x, r.b   # hide
-Random.seed!(716)  # hide
+r = mdopen("shaw", 100, false) # hide
+A, x, y = r.A, r.x, r.b        # hide
+Random.seed!(716)              # hide
 y = A * x
-b = y + 0.1y .* randn(100)
+b = y + 0.1y .* random(100)
 solution = @> setupRegularizationProblem(A, 0) solve(b, alg = :L_curve, λ₁ = 0.01, λ₂ = 1.0)
 λopt = solution.λ
 ```
@@ -288,12 +299,14 @@ using Printf#hide
 using Lazy#hide
 using Underscores #hide
 using LinearAlgebra #hide
+using DelimitedFiles # hide
+using Lazy           # hide
+random(n) = @> readdlm("random.txt") vec x -> x[201:200+n] # hide 
 include("helpers.jl") #hide
 r = mdopen("shaw", 100, false) #hide
 A, x, y = r.A, r.x, r.b #hide
-Random.seed!(716) #hide
 y = A * x
-b = y + 0.1y .* randn(100)
+b = y + 0.1y .* random(100)
 Iₙ = Matrix{Float64}(I, 100, 100)
 Aλ(λ) = A*inv(A'A + λ^2.0*Iₙ)*A'
 gcv(λ) = 100*norm((Iₙ - Aλ(λ))*b)^2.0/tr(Iₙ - Aλ(λ))^2.0
@@ -308,20 +321,23 @@ The GCV curve has a steep part for large ``\lambda`` and a shallow part for smal
 
 ```@example
 using MatrixDepot # hide
-using Lazy   # hide
-using Random # hide
+using Lazy        # hide
+using Random      # hide
+using DelimitedFiles # hide
+using Lazy           # hide
+random(n) = @> readdlm("random.txt") vec x -> x[201:200+n] # hide 
+
 using RegularizationTools
 
 r = mdopen("shaw", 100, false) #hide
 A, x, y = r.A, r.x, r.b   # hide
-Random.seed!(716)  # hide
 y = A * x
-b = y + 0.1y .* randn(100)
+b = y + 0.1y .* random(100)
 solution = @> setupRegularizationProblem(A, 0) solve(b, alg = :gcv_svd, λ₁ = 0.01, λ₂ = 1.0)
 λopt = solution.λ
 ```
 
-Note that the objective λopt from the L-curve and GCV criterion are nearly identical. 
+Note that the objective λopt from the L-curve and GCV criterion are close. 
 
 
 ## Transformation to Standard Form

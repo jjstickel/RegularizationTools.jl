@@ -49,6 +49,7 @@ y1 = A*x
 
 y2 = forwardmodel(s, x, q, f)
 y1 == y2
+```
 """
 function forwardmodel(
     s::AbstractVector{T1},

@@ -7,7 +7,7 @@ RegularizationTools.jl bundles a set routines to compute the [regularized  Tikho
 ## Package Features
 - Computes the Tikhonov inverse solution with optional boundary constraints.
 - Computes optimal regularization parameter using generalized cross validation or the L-curve.
-- Solves problems with up to a 1000 equations.
+- Solves problems up to ~1000 equations.
 - Supports higher order regularization schemes out of the box.
 - Supports specifying an *a-priori* estimate of the solution.
 - Supports user specified smoothing matrices.
@@ -16,8 +16,6 @@ RegularizationTools.jl bundles a set routines to compute the [regularized  Tikho
 
 ## About
 Tikhonv regularization is also known as Phillips-Twomey-Tikhonov regularization or ridge regression (see Hansen, 2000 for a review). The Web-of-Sciences database lists more than 4500 peer-reviewed publications mentioning "Tikhonov regularization" in the title or abstract, with a current publication rate of ≈350 new papers/year. 
-
- The first draft of this code was part of my [DifferentialMobilityAnalyzers](https://mdpetters.github.io/DifferentialMobilityAnalyzers.jl/stable/) package. Unfortunately, the initial set of algorithms were too limiting and too slow. I needed a better set of regularization tools to work with, which is how this package came into existence. Consequently, the scope of the package is defined by my need to support data inversions for the DifferentialMobilityAnalyzers project. My research area is not on inverse methods and I currently do not intend to grow this package into something that goes much beyond the implemented algorithms. However, the code is a generic implementation of the Tikhonov method and might be useful to applied scientists who need to solve standard ill-posed inverse problems that arise in many disciplines. 
 
 # Quick Start
 
@@ -33,23 +31,25 @@ subject to the optional constraint ``{\rm x}_{l}<{\rm x}<{\rm x}_{u}``. Here ``{
 The following script is a minimalist example how to use this package.
 
 ```@example
-using RegularizationTools, MatrixDepot, Lazy
-using Random #hide
+using RegularizationTools, MatrixDepot, Lazy, DelimitedFiles
+random(n) = @> readdlm("random.txt") vec x -> x[1:n] 
 
 # This is a test problem for regularization methods
 r = mdopen("shaw", 100, false)       # Load the "shaw" problem from MatrixDepot
 A, x  = r.A, r.x                     # A is size(100,100), x is length(100)
-Random.seed!(250)  # hide
 
 y = A * x                            # y is the true response 
-b = y + 0.2y .* randn(100)           # response with superimposed noise
+b = y + 0.2y .* random(100)          # response with superimposed noise
 x₀ = 0.4x                            # some a-priori estimate x₀
 
 # Solve 2nd order Tikhonov inversion (L = uppertridiag(−1, 2, −1)) with intial guess x₀
 xλ = invert(A, b, Lₖx₀(0, x₀))
-include("theory/helpers.jl") # hide
+include("theory/helpers.jl")   # hide
 standard_plot(y, b, x, xλ, x₀) # hide
 ```
+
+!!! info
+	Per [documentation](https://docs.julialang.org/en/v1/stdlib/Random/), the way random numbers are generated in Julia is considered an implementation detail. Bug fixes and speed improvements may change the stream of numbers that are generated after a version change. To keep the examples in the documentation of this package consistent between Julia updates, the function ```random(n)``` is used to load n pre-generated normally distributed random numbers from a text file.
 
 # Installation
 
@@ -74,4 +74,17 @@ For optimal performance, also install the [Intel MKL linear algebra](https://git
 * [RegularizedLeastSquares](https://tknopp.github.io/RegularizedLeastSquares.jl/latest/): Implements optimization techniques for large-scale scale linear systems.
 
 ## Author and Copyright
-Markus Petters, Department of Marine, Earth, and Atmospheric Sciences, NC State University.
+Markus Petters, Department of Marine, Earth, and Atmospheric Sciences, NC State University
+.
+
+# Contribtions
+[Jonathan Stickel](https://github.com/jjstickel)
+- Several bug fixes
+- Improvement of derivative matrix support
+
+# Citation and Acknowledgements
+*If you use this package and publish your work, please cite:*
+
+Petters, M. D.: Revisiting matrix-based inversion of scanning mobility particle sizer (SMPS) and humidified tandem differential mobility analyzer (HTDMA) data, Atmos. Meas. Tech., 14, 7909–7928, https://doi.org/10.5194/amt-14-7909-2021, 2021.
+
+This work was supported by the United States Department of Energy, Office of Science, Biological and Environment Research, Grant number DE-SC0021074.
