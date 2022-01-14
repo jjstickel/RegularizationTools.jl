@@ -26,6 +26,8 @@ function gcv_tr(Ψ::RegularizationProblem, b̄::AbstractVector, λ::AbstractFloa
     return n * norm((Iₙ - Aλ) * b̄)^2.0 / tr(Iₙ - Aλ)^2.0
 end
 
+gcv_tr_log10λ(Ψ::RegularizationProblem, b̄::AbstractVector, log10λ::AbstractFloat) =
+    gcv_tr(Ψ, b̄, 10^log10λ)
 
 @doc raw"""
     gcv_tr(
@@ -100,6 +102,9 @@ function gcv_svd(Ψ::RegularizationProblem, b̄::AbstractVector, λ::AbstractFlo
 
     return n * (norm(b̄)^2.0 - norm(z)^2.0 + s1) / (n - p + s2)^2.0
 end
+
+gcv_svd_log10λ(Ψ::RegularizationProblem, b̄::AbstractVector, log10λ::AbstractFloat) =
+    gcv_svd(Ψ, b̄, 10^log10λ)
 
 @doc raw"""
     gcv_svd(
