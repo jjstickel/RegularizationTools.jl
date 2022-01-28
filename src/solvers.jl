@@ -202,18 +202,7 @@ function solve(
         :L_curve => 1.0 - κ_log10λ(x)
         _ => throw("Unknown algorithm, use :gcv_tr, :gcv_svd, or :L_curve")
     end
-    if method in [Brent(), GoldenSection()] # univariate methods with bounds
-        solution = optimize(optfunc, log10(λ₁), log10(λ₂), method; kwargs...)
-        log10λ = @> solution Optim.minimizer
-    else # methods that use an intitial guess; gradient-free and gradient methods via
-        # default finite-difference work Ok, but `autodiff=:forward` is not working
-        solution = optimize(x->optfunc(first(x)), [log10(λ₀)], method,
-                            Optim.Options(; kwargs...))
-        # alternative method call, but cautioned against in the docs
-        #solution = optimize(x->optfunc(first(x)), [log10(λ₀)]; method=method, kwargs...)
-        log10λ = @> solution Optim.minimizer first
-    end
-    λ = 10^log10λ
+    λ, solution = solve_λ(optfunc, method, λ₁, λ₂, λ₀; kwargs...)
     
     x̄ = solve(Ψ, b̄, λ)
     x = @>> x̄ to_general_form(Ψ, b) 
@@ -242,25 +231,48 @@ function solve(
     b::AbstractVector,
     x₀::AbstractVector;
     alg = :gcv_svd,
+    method = Brent(),
     λ₁ = 0.0001,
     λ₂ = 1000.0,
+    λ₀ = 1.0,
+    kwargs...
 )
     b̄ = @>> b to_standard_form(Ψ)
     x̄₀ = Ψ.L * x₀
-    L1, L2, κ = Lcurve_functions(Ψ, b̄, x̄₀)
-
-    solution = @match alg begin
-        :gcv_tr  => @_ optimize(gcv_tr(Ψ, b̄, x̄₀, _), λ₁, λ₂) 
-        :gcv_svd => @_ optimize(gcv_svd(Ψ, b̄, x̄₀, _), λ₁, λ₂)
-        :L_curve => @_ optimize(1.0 - κ(_), λ₁, λ₂) 
-        _ => throw("Unknown algorithm, use :gcv_tr, :gcv_svd, or :L_curve")
+    if alg==:L_curve
+        L1, L2, κ = Lcurve_functions(Ψ, b̄, x̄₀)
+        κ_log10λ(log10λ::AbstractFloat) = κ(10^log10λ)
     end
 
-    λ = @> solution Optim.minimizer
+    optfunc(x) = @match alg begin
+        :gcv_tr => gcv_tr_log10λ(Ψ, b̄, x̄₀, x)
+        :gcv_svd => gcv_svd_log10λ(Ψ, b̄, x̄₀, x)
+        :L_curve => 1.0 - κ_log10λ(x)
+        _ => throw("Unknown algorithm, use :gcv_tr, :gcv_svd, or :L_curve")
+    end
+    λ, solution = solve_λ(optfunc, method, λ₁, λ₂, λ₀; kwargs...)
+    
     x̄ = solve(Ψ, b̄, x̄₀, λ)
     x = @>> x̄ to_general_form(Ψ, b)   
 
     return RegularizedSolution(x, λ, solution)
+end
+
+function solve_λ(optfunc::Function, method::Any, λ₁::AbstractFloat, λ₂::AbstractFloat,
+                 λ₀::AbstractFloat; kwargs...)
+    if method in [Brent(), GoldenSection()] # univariate methods with bounds
+        solution = optimize(optfunc, log10(λ₁), log10(λ₂), method; kwargs...)
+        log10λ = @> solution Optim.minimizer
+    else # methods that use an intitial guess; gradient-free and gradient methods via
+        # default finite-difference work Ok, but `autodiff=:forward` is not working
+        solution = optimize(x->optfunc(first(x)), [log10(λ₀)], method,
+                            Optim.Options(; kwargs...))
+        # alternative method call, but cautioned against in the docs
+        #solution = optimize(x->optfunc(first(x)), [log10(λ₀)]; method=method, kwargs...)
+        log10λ = @> solution Optim.minimizer first
+    end
+    λ = 10^log10λ
+    return λ, solution
 end
 
 @doc raw"""
