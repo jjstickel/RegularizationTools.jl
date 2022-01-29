@@ -148,17 +148,24 @@ end
         Ψ::RegularizationProblem,
         b::AbstractVector;
         alg = :gcv_svd,
+        method = Brent(),
         λ₁ = 0.0001,
         λ₂ = 1000.0,
+        λ₀ = 1.0,
+        kwargs...
     )
 
-Find the optimum regularization parameter λ between [λ₁, λ₂] using the algorithm alg. Choices
-for algorithms are
+Find the optimum regularization parameter λ using the algorithm `alg` and optimization
+`method`. Choices for algorithms are
 ```    
     :gcv_tr - generalized cross validation using the trace formulation (slow)
     :gcv_svd - generalized cross validation using the SVD decomposition (fast)
     :L_curve - L-curve algorithm 
 ```
+Optimization methods are those available in the Optim package. Methods that optimize on
+bounds (`Brent()` and `GoldenSection()`) will use [λ₁, λ₂] for bounds. Other methods will
+use λ₀ for the initial guess. The methods `Brent()` (default) and `NelderMead()` are
+recommended. Any additional keyword arguments will be passed on to the optimization method.
 
 !!! tip
     The gcv\_svd algorithm is fastest and most stable. The L\_curve algorithn is sensitive to the upper 
@@ -202,7 +209,7 @@ function solve(
         :L_curve => 1.0 - κ_log10λ(x)
         _ => throw("Unknown algorithm, use :gcv_tr, :gcv_svd, or :L_curve")
     end
-    λ, solution = solve_λ(optfunc, method, λ₁, λ₂, λ₀; kwargs...)
+    λ, solution = _solve_λ(optfunc, method, λ₁, λ₂, λ₀; kwargs...)
     
     x̄ = solve(Ψ, b̄, λ)
     x = @>> x̄ to_general_form(Ψ, b) 
@@ -216,8 +223,11 @@ end
         b::AbstractVector,
         x₀::AbstractVector;
         alg = :gcv_svd,
+        method = Brent(),
         λ₁ = 0.0001,
         λ₂ = 1000.0,
+        λ₀ = 1.0,
+        kwargs...
     )
 
 Same as above, but includes an initial guess x₀. Example Usage (Lazy Syntax)
@@ -250,7 +260,7 @@ function solve(
         :L_curve => 1.0 - κ_log10λ(x)
         _ => throw("Unknown algorithm, use :gcv_tr, :gcv_svd, or :L_curve")
     end
-    λ, solution = solve_λ(optfunc, method, λ₁, λ₂, λ₀; kwargs...)
+    λ, solution = _solve_λ(optfunc, method, λ₁, λ₂, λ₀; kwargs...)
     
     x̄ = solve(Ψ, b̄, x̄₀, λ)
     x = @>> x̄ to_general_form(Ψ, b)   
@@ -258,7 +268,11 @@ function solve(
     return RegularizedSolution(x, λ, solution)
 end
 
-function solve_λ(optfunc::Function, method::Any, λ₁::AbstractFloat, λ₂::AbstractFloat,
+"""
+Internal function that performs the operations of calculating the regularization parameter
+that minimizes the specified objective function.
+"""
+function _solve_λ(optfunc::Function, method::Any, λ₁::AbstractFloat, λ₂::AbstractFloat,
                  λ₀::AbstractFloat; kwargs...)
     if method in [Brent(), GoldenSection()] # univariate methods with bounds
         solution = optimize(optfunc, log10(λ₁), log10(λ₂), method; kwargs...)
